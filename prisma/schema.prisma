@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Goods {
+  id       Int      @id @default(autoincrement())
+  name     String   @db.VarChar(255)
+  category String[]
+  tags     String[]
+  status   Status[]
+}
+
+model Status {
+  id      Int        @id @default(autoincrement())
+  goodsId Int
+  goods   Goods      @relation(fields: [goodsId], references: [id])
+  at      DateTime
+  borrow  Borrow?
+  place   Placement?
+}
+
+model Borrow {
+  id           Int      @id @default(autoincrement())
+  wishToReturn DateTime
+  returned     DateTime
+  // 登记人信息
+  memberId     String   @db.Char(10)
+  member       Member   @relation(fields: [memberId], references: [schoolId])
+  // 借出人信息
+  personId     String   @db.Char(10)
+  person       Person   @relation(fields: [personId], references: [schoolId])
+  // 借出详细记录
+  description  String   @db.Text
+  statusId     Int      @unique
+  status       Status   @relation(fields: [statusId], references: [id])
+}
+
+model Placement {
+  id       Int      @id @default(autoincrement())
+  place    String   @db.Text
+  at       DateTime
+  memberId String   @db.Char(10)
+  member   Member   @relation(fields: [memberId], references: [schoolId])
+  statusId Int      @unique
+  status   Status   @relation(fields: [statusId], references: [id])
+}
+
+model Person {
+  id       Int      @id @default(autoincrement())
+  name     String   @db.VarChar(255)
+  schoolId String   @unique @db.Char(10)
+  tel      String   @db.VarChar(255)
+  borrows  Borrow[]
+}
+
+model Member {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(255)
+  schoolId   String      @unique @db.Char(10)
+  department String      @db.VarChar(255)
+  tel        String      @db.VarChar(255)
+  placements Placement[]
+  borrows    Borrow[]
+}
