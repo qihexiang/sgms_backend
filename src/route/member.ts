@@ -4,13 +4,14 @@ import db from "../db";
 
 const ajv = new Ajv();
 
-const personRoute = Router();
+const memberRoute = Router();
 
-personRoute
-  .post("/:name/:schoolId/:tel", async (req, res) => {//可以在路径里写正则表达式
+memberRoute
+  .post("/:name/:schoolId/:department/:tel", async (req, res) => {
     type Params = {
       name: string;
       schoolId: string;
+      department:string;
       tel: string;
     };
     const schema: JSONSchemaType<Params> = {
@@ -25,16 +26,21 @@ personRoute
           minLength: 10,
           maxLength: 10,
         },
+        department:{
+            type:"string",
+            minLength:3,
+            maxLength:5,
+        },
         tel: {
           type: "string",
         },
       },
-      required: ["name", "schoolId", "tel"],
+      required: ["name", "schoolId","department", "tel"],
     };
     const validator = ajv.compile(schema);
     if (validator(req.params)) {
       try {
-        const result = await db.person.create({
+        const result = await db.member.create({
           data: req.params,
         });
         res.send(result);
@@ -53,7 +59,7 @@ personRoute
   .put("/:schoolId/tel/:newTel", async (req, res) => {
     const { schoolId, newTel } = req.params;
     try {
-      const result = await db.person.update({
+      const result = await db.member.update({
         where: {
           schoolId,
         },
@@ -70,18 +76,18 @@ personRoute
   })
   .get("/:schoolId", async (req, res) => {
     try {
-        const result = await db.person.findUnique({
-            where: {
-                schoolId: req.params.schoolId
-            },
-            include: {
-                borrows: true
-            }
-        })
-        res.send(result)
-    } catch(err) {
-        res.status(500).send("Failed to get data.")
+      const result = await db.member.findUnique({
+        where: {
+          schoolId: req.params.schoolId,
+        },
+        include: {
+          borrows: true,
+        },
+      });
+      res.send(result);
+    } catch (err) {
+      res.status(500).send("Failed to get data.");
     }
   });
 
-export default personRoute;
+export default memberRoute;

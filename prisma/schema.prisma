@@ -30,7 +30,7 @@ model Status {
 model Borrow {
   id           Int      @id @default(autoincrement())
   wishToReturn DateTime
-  returned     DateTime
+  returned     DateTime?    //可能为空
   // 登记人信息
   memberId     String   @db.Char(10)
   member       Member   @relation(fields: [memberId], references: [schoolId])
