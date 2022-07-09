@@ -16,13 +16,13 @@ model Goods {
   category String[]
   tags     String[]
   status   Status[]
+  deleted  Boolean  @default(false)
 }
 
 model Status {
   id      Int        @id @default(autoincrement())
   goodsId Int
   goods   Goods      @relation(fields: [goodsId], references: [id])
-  at      DateTime
   borrow  Borrow?
   place   Placement?
 }
@@ -30,7 +30,7 @@ model Status {
 model Borrow {
   id           Int      @id @default(autoincrement())
   wishToReturn DateTime
-  returned     DateTime
+  returned     DateTime?
   // 登记人信息
   memberId     String   @db.Char(10)
   member       Member   @relation(fields: [memberId], references: [schoolId])
