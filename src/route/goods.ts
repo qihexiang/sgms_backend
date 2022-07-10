@@ -35,6 +35,8 @@ goodsRoute.get("/", async (req, res) => {
     name: string;
     category: string[];
     tags: string[];
+    place:string;
+    memberID:string;
   };
   const schema: JSONSchemaType<Params> = {
     type: "object",
@@ -55,20 +57,50 @@ goodsRoute.get("/", async (req, res) => {
           type:"string"
         }
       },
+      place:{
+        type:"string",
+      },
+      memberID:{
+        type:"string",
+      },
     },
-    required: ["name", "category", "tags"],
+    required: ["name", "category", "tags","place","memberID"],
   };
   const validator = ajv.compile(schema);
   if (validator(req.body)) {
     try {
-      const result = await db.goods.create({
-        data: {...req.body},
+      const placement =await db.placement.create({
+        data:{
+          place:req.body.place,
+          at:new Date(),
+          member:{
+            connect:{
+              schoolId:req.body.memberID
+            }
+          },
+          status:{
+           create:{
+            goods:{
+              create:{
+                name:req.body.name,
+                category:req.body.category,
+                tags:req.body.tags,
+              }
+            }
+           } 
+          }
+        }
       });
-      res.send(result);
+      // const placement = await db.member.findUnique({
+      //   where:{
+      //     schoolId:req.body.memberID
+      //   }
+      // })
+      res.send(placement);
     } catch (err) {
       console.log(JSON.stringify(err));
       res.status(500).send({
-        err: "Failed to find goods.",
+        err: "Failed to create goods.",
       });
     }
   } else {
@@ -76,6 +108,30 @@ goodsRoute.get("/", async (req, res) => {
       err: "Invalid find data.",
     });
   }
+})
+///删除问题
+
+.put("/:id", async (req, res) => {
+  const id = req.params.id;
+    try {
+      
+      const result = await db.goods.update({
+        where: {
+          id:parseInt(id,10),
+        },
+        data: {
+          deleted: true,
+        },
+      });
+      res.send({
+        message: "deleted",
+      });
+    } catch (err) {
+      res.status(500).send({
+        err: "Failed to deleted.",
+      });
+    }
+
 })
 
 export default goodsRoute;
