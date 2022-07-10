@@ -4,7 +4,7 @@ import db from "../db";
 import BodyParser from "body-parser";
 
 const ajv = new Ajv();
-
+let i:number=0;
 const goodsRoute = Router();
 //keyword nickname role status num//关键词 别名 用途 状态 |||现有数量
 
@@ -32,6 +32,7 @@ goodsRoute.get("/", async (req, res) => {
 //物品数据增加||||personID,staff,ItemID，position，keyword，nickname，role，status，num
 .use(BodyParser.json()).post("/", async (req, res) => {//可以在路径里写正则表达式
   type Params = {
+    amount:number;
     name: string;
     category: string[];
     tags: string[];
@@ -41,6 +42,9 @@ goodsRoute.get("/", async (req, res) => {
   const schema: JSONSchemaType<Params> = {
     type: "object",
     properties: {
+      amount:{
+        type:"integer"
+      },
       name: {
         type: "string",
         minLength: 2,
@@ -69,6 +73,7 @@ goodsRoute.get("/", async (req, res) => {
   const validator = ajv.compile(schema);
   if (validator(req.body)) {
     try {
+      while(i<req.body.amount){
       const placement =await db.placement.create({
         data:{
           place:req.body.place,
@@ -91,23 +96,28 @@ goodsRoute.get("/", async (req, res) => {
           }
         }
       });
+      i=i+1;
+    } 
       // const placement = await db.member.findUnique({
       //   where:{
       //     schoolId:req.body.memberID
       //   }
       // })
-      res.send(placement);
+      res.send({
+        message:"All right"
+      });
     } catch (err) {
       console.log(JSON.stringify(err));
       res.status(500).send({
         err: "Failed to create goods.",
       });
     }
-  } else {
+}else {
     res.status(400).send({
       err: "Invalid find data.",
     });
   }
+
 })
 ///删除问题
 
